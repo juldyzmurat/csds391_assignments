@@ -1,0 +1,117 @@
+#WRONG Initial state entry with a 9 (which is not allowed)
+printState
+setState 1 2 0 3 4 5 9 6 7
+printState
+
+#WRONG Initial state entry with less than 9 elements 
+printState
+setState 1 2 0 3 4 5 8 6
+printState
+
+#WRONG Initial state entry with less repeated elements
+printState
+setState 1 2 0 3 4 5 8 6 8
+printState
+
+#CORRECT Initial state entry 
+printState
+setState 1 2 0 3 4 5 8 6 7
+printState
+
+#INVALID move upwards 
+setState 1 0 2 3 4 5 6 7 8
+move up 
+
+#VALID move upwards
+setState 1 4 2 3 0 5 6 7 8
+move down 
+printState
+
+#INVALID move downwards 
+setState 3 1 2 6 4 5 7 8 0
+move up
+
+#VALID move downwards 
+setState 0 1 2 3 4 5 6 7 8
+move down 
+printState
+
+#INVALID move to the right 
+setState 3 1 2 4 5 0 6 7 8 
+move right
+
+#VALID move to the right 
+setState 1 0 2 3 4 5 6 7 8
+move right 
+printState
+
+#INVALID move to the left 
+setState 0 1 2 3 4 5 6 7 8
+
+#VALID move to the left 
+setState 1 0 2 3 4 5 6 7 8
+move left 
+printState
+
+#try scrambledstate 
+setState 0 1 2 3 4 5 6 7 8 
+scrambleState 5
+printState
+
+setState 0 1 2 3 4 5 6 7 8 
+scrambleState 0
+printState
+
+#INVALID scrambleState arguments 
+setState 0 1 2 3 4 5 6 7 8 
+scrambleState -5 
+printState
+
+#try BFS 
+
+#ALREADY GOAL STATE
+setState 0 1 2 3 4 5 6 7 8
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 1 move away 
+setState 3 1 2 0 4 5 6 7 8
+solveBFS
+
+# 1 move away 
+setState 1 0 2 3 4 5 6 7 8
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 3 moves away
+setState 3 1 2 6 4 5 7 0 8
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 3 move away 
+setState 1 4 2 3 7 5 6 0 8
+solveBFS 
+
+#VALID REACHABLE GOAL STATE
+# 4 move away
+setState 3 1 2 6 4 5 7 8 0
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 4 moves away
+setState 3 1 2 6 0 5 7 4 8
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 5 moves away
+setState 3 1 2 6 5 0 7 4 8 
+solveBFS
+
+#VALID REACHABLE GOAL STATE
+# 5 moves away
+setState 3 1 2 4 7 0 6 8 5
+solveBFS
+
+#INVALID UNREACHBLE GOAL STATE 
+setState 1 2 3 4 5 6 8 7 0 
+solveBFS
