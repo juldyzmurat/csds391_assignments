@@ -1,117 +1,168 @@
+setseed 42
+
 #WRONG Initial state entry with a 9 (which is not allowed)
 printState
 setState 1 2 0 3 4 5 9 6 7
+#Expected: Error processing command 
 printState
 
 #WRONG Initial state entry with less than 9 elements 
 printState
 setState 1 2 0 3 4 5 8 6
+#Expected: Error processing command
 printState
 
 #WRONG Initial state entry with less repeated elements
 printState
 setState 1 2 0 3 4 5 8 6 8
+#Expected: Error processing command
 printState
 
 #CORRECT Initial state entry 
 printState
 setState 1 2 0 3 4 5 8 6 7
+#Expected: 
+#1 2  
+#3 4 5
+#8 6 7
 printState
 
 #INVALID move upwards 
 setState 1 0 2 3 4 5 6 7 8
 move up 
+#Expected: Error processing command
 
 #VALID move upwards
 setState 1 4 2 3 0 5 6 7 8
 move down 
+#Expected: 
+#1 4 2
+#3 7 5
+#6   8
 printState
 
 #INVALID move downwards 
 setState 3 1 2 6 4 5 7 8 0
-move up
+move down
+#Expected: Error processing command
+
 
 #VALID move downwards 
 setState 0 1 2 3 4 5 6 7 8
 move down 
+#Expected:
+#1 4 2
+#3 7 5
+#6   8
+
 printState
 
 #INVALID move to the right 
 setState 3 1 2 4 5 0 6 7 8 
 move right
+#Expected: Error processing command
 
 #VALID move to the right 
 setState 1 0 2 3 4 5 6 7 8
 move right 
+#Expected:
+#1 2  
+#3 4 5
+#6 7 8
 printState
 
 #INVALID move to the left 
 setState 0 1 2 3 4 5 6 7 8
+move left 
+#Expected: Error processing command
+
 
 #VALID move to the left 
 setState 1 0 2 3 4 5 6 7 8
 move left 
+#Expected: 
+#  1 2
+#3 4 5
+#6 7 8
 printState
 
 #try scrambledstate 
 setState 0 1 2 3 4 5 6 7 8 
 scrambleState 5
+#Expected: 
+#3 1 2
+#  4 5
+#6 7 8
 printState
 
 setState 0 1 2 3 4 5 6 7 8 
 scrambleState 0
+#Expected:
+#  1 2
+#3 4 5
+#6 7 8
 printState
 
 #INVALID scrambleState arguments 
 setState 0 1 2 3 4 5 6 7 8 
 scrambleState -5 
+#Expected: Error processing command
 printState
 
-#try BFS 
-
-#ALREADY GOAL STATE
-setState 0 1 2 3 4 5 6 7 8
-solveBFS
+#try DFS 
 
 #VALID REACHABLE GOAL STATE
-# 1 move away 
-setState 3 1 2 0 4 5 6 7 8
-solveBFS
-
-# 1 move away 
-setState 1 0 2 3 4 5 6 7 8
-solveBFS
+#ALREADY GOAL STATE
+setState 0 1 2 3 4 5 6 7 8
+solveDFS
+#Expected:
+#Nodes created during search: 1
+#Solution length: 0
+#Move sequence:
+#No move needed
 
 #VALID REACHABLE GOAL STATE
 # 3 moves away
 setState 3 1 2 6 4 5 7 0 8
-solveBFS
-
-#VALID REACHABLE GOAL STATE
-# 3 move away 
-setState 1 4 2 3 7 5 6 0 8
-solveBFS 
-
-#VALID REACHABLE GOAL STATE
-# 4 move away
-setState 3 1 2 6 4 5 7 8 0
-solveBFS
-
-#VALID REACHABLE GOAL STATE
-# 4 moves away
-setState 3 1 2 6 0 5 7 4 8
-solveBFS
-
-#VALID REACHABLE GOAL STATE
-# 5 moves away
-setState 3 1 2 6 5 0 7 4 8 
-solveBFS
-
-#VALID REACHABLE GOAL STATE
-# 5 moves away
-setState 3 1 2 4 7 0 6 8 5
-solveBFS
+solveDFS
+#Expected:
+#Nodes created during search: 31
+#Solution length: 29
+#Move sequence:
+#move right
+#move up
+#move left
+#move left
+#move down
+#move right
+#move right
+#move up
+#move left
+#move left
+#move down
+#move right
+#move right
+#move up
+#move left
+#move left
+#move down
+#move right
+#move right
+#move up
+#move left
+#move left
+#move down
+#move right
+#move right
+#move up
+#move left
+#move left
+#move up
 
 #INVALID UNREACHBLE GOAL STATE 
 setState 1 2 3 4 5 6 8 7 0 
-solveBFS
+solveDFS
+#Expected: Error: maxnodes limit reached
+
+
+

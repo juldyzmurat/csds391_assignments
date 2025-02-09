@@ -104,8 +104,9 @@ class Puzzle:
             Puzzle.printState(self.tiles)
         
     def setseed(self,seed):
-        np.random.seed(seed)
-    
+        seed = int(seed)  
+        np.random.seed(seed) 
+        
     def solveBFS(self,maxnodes=1000):
         #quque for BFS
         queue = []
@@ -147,6 +148,7 @@ class Puzzle:
                     visited.add(temp_tuple)
                     parent[temp_tuple] = (current, "left")
                     nodes_count+=1  
+                    
 
                 
             if current_puz.validmove("right"):
@@ -195,39 +197,89 @@ class Puzzle:
                     parent[temp_tuple] = (current, "down")
                     nodes_count+=1
                     
-                
+    def solveDFS(self, maxnodes=1000, maxdepth=31):
+        visited = set()
+        stack = [(tuple(map(tuple, self.tiles)), [])]
+        nodes_explored = 0
+
+        while stack and nodes_explored < maxnodes:
+            state, path = stack.pop()
+            nodes_explored += 1
+
+            if state == ((0,1,2),(3,4,5),(6,7,8)):
+                print(f"Nodes created during search: {nodes_explored}")
+                print(f"Solution length:", len(path))
+                print("Move sequence:")
+                if path:
+                    for move in path:
+                        print(f"move {move}")
+                else:
+                    print("No move needed")
+                return path
             
-            
-            
+
+            if len(path) >= maxdepth:
+                continue
+
+            if state not in visited:
+                visited.add(state)
+                for direction in ["up", "down", "left", "right"]:
+                    new_state = self.apply_move(state, direction)
+                    if new_state and new_state not in visited:
+                        stack.append((new_state, path + [direction]))
+
+        print(f"Error: {'maxnodes' if nodes_explored >= maxnodes else 'maxdepth'} limit reached")
+        return None
+
+    def apply_move(self, state, direction):
+        i, j = next((i, j) for i, row in enumerate(state) for j, val in enumerate(row) if val == 0)
+        new_state = [list(row) for row in state]
+        
+        if direction == "up" and i > 0:
+            new_state[i][j], new_state[i-1][j] = new_state[i-1][j], new_state[i][j]
+        elif direction == "down" and i < 2:
+            new_state[i][j], new_state[i+1][j] = new_state[i+1][j], new_state[i][j]
+        elif direction == "left" and j > 0:
+            new_state[i][j], new_state[i][j-1] = new_state[i][j-1], new_state[i][j]
+        elif direction == "right" and j < 2:
+            new_state[i][j], new_state[i][j+1] = new_state[i][j+1], new_state[i][j]
+        else:
+            return None
+        
+        return tuple(map(tuple, new_state))
+
+
 
 
 def cmd(commandString,puzzle):
-        commands = {
-            "setState": lambda *args: puzzle.setState(args),
-            "printState": lambda: Puzzle.printState(puzzle.tiles), 
-            "move":lambda *args: puzzle.move(args[0]), 
-            "scrambleState": lambda *args: puzzle.scrambleState(args[0]), 
-            "solveBFS": lambda: puzzle.solveBFS(),
-        }
-        parts = commandString.split()
-        command  = parts[0]
-        if len(parts)>1:
-            args = parts[1:]
-        else:
-            args = []
-        try: 
-            if command in commands: 
-                if args:
-                    commands[command](*args)  # Pass args if they exist
-                else:
-                    commands[command]()
+    commands = {
+        "setState": lambda *args: puzzle.setState(args),
+        "printState": lambda: Puzzle.printState(puzzle.tiles), 
+        "move":lambda *args: puzzle.move(args[0]), 
+        "scrambleState": lambda *args: puzzle.scrambleState(args[0]), 
+        "solveBFS": lambda: puzzle.solveBFS(),
+        "solveDFS": lambda: puzzle.solveDFS(),
+        "setseed": lambda *args: puzzle.setseed(args[0])
+    }
+    parts = commandString.split()
+    command  = parts[0]
+    if len(parts)>1:
+        args = parts[1:]
+    else:
+        args = []
+    try: 
+        if command in commands: 
+            if args:
+                commands[command](*args)  
             else:
-                print(f"Error: Invalid Command:")
-        except Exception as e:
-            print("Error processing command")
+                commands[command]()
+        else:
+            print(f"Error: Invalid Command:")
+    except Exception as e:
+        print("Error processing command")
 
 def validlines(line):
-    validstarts = ["setState", "printState", "move", "scrambleState","setseed","solveBFS","#","/",""]
+    validstarts = ["setState", "printState", "move", "scrambleState","setseed","solveBFS","solveDFS","#","/",""]
     for prefix in validstarts:
         if line.startswith(prefix):
             return True
