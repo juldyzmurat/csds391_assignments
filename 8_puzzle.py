@@ -1,14 +1,15 @@
 
-#%%
-
-#function for command string
 import numpy as np 
 import sys 
+import heapq
 
 class Puzzle:
     def __init__(self,tiles = None):
-        self.tiles = tiles if tiles else [[0,1,2],[3,4,5],[6,7,8]]
-        self.blank =  (0,0)
+        self.tiles = tiles if tiles else [[1,2,3],[4,5,6],[7,8,0]]
+        if tiles is None:
+            self.blank =  (0,0)
+        else:
+            self.blank = self.find_blank()
         
     def find_blank(self):
         for i in range(len(self.tiles)):
@@ -27,7 +28,7 @@ class Puzzle:
         arr = list(map(int,args))
         if len(arr)!=9: 
             raise ValueError("Error: Invalid Input Puzzle State")
-        if set(arr) != set([0,1,2,3,4,5,6,7,8]):
+        if set(arr) != set([1,2,3,4,5,6,7,8,0]):
             raise ValueError("Error: Invalid Input Puzzle State")
         self.tiles = np.array(arr).reshape(3,3).tolist()
         return ""
@@ -92,7 +93,7 @@ class Puzzle:
         n = int(n)
         if n<0:
             raise ValueError("Error: Invalid Input. Number of moves must be positive")
-        self.setState([0,1,2,3,4,5,6,7,8])
+        self.setState([1,2,3,4,5,6,7,8,0])
         nmoves = 0 
         curmove = self.getvalidmovedir()
         print("Initial State:")
@@ -123,7 +124,7 @@ class Puzzle:
         
         while queue:
             current = queue.pop(0)
-            if tuple(map(tuple,current)) == ((0,1,2),(3,4,5),(6,7,8)):
+            if tuple(map(tuple,current)) == ((1,2,3),(4,5,6),(7,8,0)):
                 path = []
                 while current != self.tiles:
                     state, action = parent[current]
@@ -206,7 +207,7 @@ class Puzzle:
             state, path = stack.pop()
             nodes_explored += 1
 
-            if state == ((0,1,2),(3,4,5),(6,7,8)):
+            if state == ((1,2,3),(4,5,6),(7,8,0)):
                 print(f"Nodes created during search: {nodes_explored}")
                 print(f"Solution length:", len(path))
                 print("Move sequence:")
@@ -247,6 +248,96 @@ class Puzzle:
             return None
         
         return tuple(map(tuple, new_state))
+    
+    def h1_func(self):
+        """
+        Counts the number of misplaced items 
+
+        Args:
+            self: the tile 
+
+        Returns:
+            int: number of displaced items 
+        """
+        countdisp = 0 
+        given = self.tiles 
+        true = [[1,2,3],[4,5,6],[7,8,0]]
+        for i in range(len(given)):
+            for j in range(len(given[0])):
+                if given[i][j] != true [i][j]:
+                    countdisp+=1 
+        return countdisp  
+    
+    def h2_func(self):
+        """
+        Counts the sum of Manhatan distances for a given state 
+
+        Args:
+            self: the tile
+
+        Returns:
+            int: sum of manhattan distances
+        """
+        correctord = [2, 2,0, 0,0, 1,0, 2,1, 0,1, 1,1, 2,2, 0,2, 1]
+        value_to_coords = dict()
+        tiles = self.tiles
+        for i, row in enumerate(tiles):
+            for j, val in enumerate(row):
+                if val is None:
+                    value_to_coords.setdefault(0, set()).add((i, j))
+                else:
+                    value_to_coords.setdefault(val, set()).add((i, j))
+        value_to_coords = dict(sorted(value_to_coords.items()))
+        flattened = [num for coords_set in value_to_coords.values() for coord in coords_set for num in coord]
+        m_dist = sum([abs(flattened[x] - correctord[x]) for x in range(len(flattened))])
+        return m_dist
+        
+        
+        
+    
+    def solveAstar(self, maxnodes=1000):
+        print("we are here")
+        """1. Initialize:
+        - Open list (priority queue), containing the starting node with f = g + h.
+        - Closed list (set), which will keep track of visited nodes.
+
+        2. While open list is not empty:
+        a. Pop the node with the lowest f value from the open list. This is the current node.
+        
+        b. If the current node is the goal:
+            - Reconstruct the path from the goal to the start (using parent pointers), and return it as the solution.
+
+        c. Add the current node to the closed list (mark it as visited).
+
+        d. For each neighbor of the current node:
+            - If the neighbor is in the closed list, skip it (already visited).
+            
+            - Calculate the tentative g score for the neighbor (g = g_current + cost to neighbor).
+            
+            - If the neighbor is not in the open list or the tentative g score is lower than the previous g score:
+                - Set the parent of the neighbor to the current node.
+                - Calculate the f score of the neighbor (f = g + h).
+                - If the neighbor is not in the open list, add it to the open list.
+
+        3. If open list is empty and no solution has been found, return failure (no path exists)."""
+        
+        open_list = []
+        # Set of visited states
+        closed_set = set()
+        # Dictionary to keep track of g_scores
+        g_scores = {}
+        # Dictionary to store parent states for path reconstruction
+        parents = {}
+    
+        curt= tuple(map(tuple,self.tiles))
+        npuzzel = Puzzle(curt)
+        h1 = npuzzel.h1_func()
+        
+                    
+    
+    
+    
+        
 
 
 
@@ -259,7 +350,8 @@ def cmd(commandString,puzzle):
         "scrambleState": lambda *args: puzzle.scrambleState(args[0]), 
         "solveBFS": lambda: puzzle.solveBFS(),
         "solveDFS": lambda: puzzle.solveDFS(),
-        "setseed": lambda *args: puzzle.setseed(args[0])
+        "setseed": lambda *args: puzzle.setseed(args[0]),
+        "solveAstar": lambda: puzzle.solveAstar()
     }
     parts = commandString.split()
     command  = parts[0]
@@ -279,7 +371,7 @@ def cmd(commandString,puzzle):
         print("Error processing command")
 
 def validlines(line):
-    validstarts = ["setState", "printState", "move", "scrambleState","setseed","solveBFS","solveDFS","#","/",""]
+    validstarts = ["setState", "printState", "move", "scrambleState","setseed","solveBFS","solveDFS","solveAstar","#","/",""]
     for prefix in validstarts:
         if line.startswith(prefix):
             return True
